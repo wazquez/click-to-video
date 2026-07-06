@@ -805,7 +805,7 @@ function switchTab(tab, btn) {
 
 // --- Video Support Modal ---
 // TODO: set the backend endpoint that receives the POST.
-const VIDEO_SUPPORT_ENDPOINT = '';
+const VIDEO_SUPPORT_ENDPOINT = 'http://localhost:3000/api/start-session';
 
 function openVideoSupport() {
   console.log('[WxCC]: opening video support modal');
@@ -827,6 +827,10 @@ async function submitVideoSupport(e) {
   const payload = {
     name: document.getElementById('vs-name').value.trim(),
     email: document.getElementById('vs-email').value.trim(),
+    verticalType: 'gen',
+    destinationId: 'vvazquezICVideo',
+    channel: 'vvazquezVideo',
+    region: 'emea',
   };
 
   status.className = 'vs-status';
@@ -852,9 +856,18 @@ async function submitVideoSupport(e) {
     });
     if (!res.ok) throw new Error('Request failed: ' + res.status);
     console.log('[WxCC]: video support request sent, status', res.status);
+
+    const data = await res.json();
+    console.log('[WxCC]: video support response:', data);
+
+    if (!data.guestUrl) throw new Error('No guestUrl in response');
+
     status.className = 'vs-status success';
-    status.textContent = 'Thanks! We’ll connect you with video support shortly.';
+    status.textContent = 'Thanks! Opening your video support session…';
     document.getElementById('vs-form').reset();
+
+    console.log('[WxCC]: opening guest URL:', data.guestUrl);
+    window.open(data.guestUrl, '_blank', 'noopener');
   } catch (err) {
     console.error('[WxCC]: video support request failed:', err);
     status.className = 'vs-status error';
