@@ -824,13 +824,14 @@ async function submitVideoSupport(e) {
   e.preventDefault();
   const status = document.getElementById('vs-status');
   const btn = document.getElementById('vs-submit');
+  const params = new URLSearchParams(window.location.search);
   const payload = {
     name: document.getElementById('vs-name').value.trim(),
     email: document.getElementById('vs-email').value.trim(),
-    verticalType: 'gen',
-    destinationId: 'vvazquezICVideo',
-    channel: 'vvazquezVideo',
-    region: 'emea',
+    verticalType: params.get('verticalType') || 'gen',
+    destinationId: params.get('destinationId') || 'vvazquezICVideo',
+    channel: params.get('channel') || 'vvazquezVideo',
+    region: params.get('region') || 'emea',
   };
 
   status.className = 'vs-status';
