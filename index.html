@@ -770,12 +770,24 @@ function switchTab(tab, btn) {
 
   // URL params let the same page demo different destinations/regions.
   const p = new URLSearchParams(window.location.search);
+  const defaults = {
+    verticalType:  'gen',
+    destinationId: 'vvazquezICVideo',
+    channel:       'vvazquezVideo',
+    region:        'emea',
+  };
+  const settings = {};
+  const sources = {};
+  for (const [key, def] of Object.entries(defaults)) {
+    const fromUrl = p.get(key);
+    settings[key] = fromUrl || def;
+    sources[key] = fromUrl ? 'url' : 'default';
+  }
+  console.log('[WxCC]: video support parameters:', settings, 'source:', sources);
+
   initVideoSupport({
     endpoint: 'https://consolidated-ic-tr-be-103887567970.us-central1.run.app/api/start-session',
-    verticalType:  p.get('verticalType')  || 'gen',
-    destinationId: p.get('destinationId') || 'vvazquezICVideo',
-    channel:       p.get('channel')       || 'vvazquezVideo',
-    region:        p.get('region')        || 'emea',
+    ...settings,
   });
   document.getElementById('support-btn').addEventListener('click', openVideoSupport);
 </script>
