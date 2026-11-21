@@ -415,45 +415,6 @@
     footer { padding: 40px 20px; }
     .footer-bottom { flex-direction: column; gap: 12px; }
   }
-
-  /* Video Support Modal */
-  .vs-overlay {
-    display: none; position: fixed; inset: 0; z-index: 1000;
-    background: rgba(5,8,15,0.75); backdrop-filter: blur(4px);
-    align-items: center; justify-content: center; padding: 20px;
-  }
-  .vs-overlay.open { display: flex; }
-  .vs-modal {
-    background: var(--card-bg); border: 1px solid var(--card-border);
-    border-radius: 14px; padding: 32px; width: 100%; max-width: 440px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative;
-    font-family: 'CiscoSans', sans-serif;
-  }
-  .vs-modal h2 {
-    font-size: 1.4rem; margin: 0 0 6px; color: var(--white);
-    background: linear-gradient(90deg, var(--accent), var(--accent3));
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .vs-modal p.vs-sub { color: var(--gray); font-size: 0.92rem; margin: 0 0 22px; }
-  .vs-close {
-    position: absolute; top: 16px; right: 18px; background: none; border: none;
-    color: var(--gray); font-size: 1.5rem; line-height: 1; cursor: pointer;
-  }
-  .vs-close:hover { color: var(--white); }
-  .vs-field { margin-bottom: 16px; }
-  .vs-field label { display: block; font-size: 0.82rem; color: var(--gray); margin-bottom: 6px; }
-  .vs-field input {
-    width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 8px;
-    background: var(--bg2); border: 1px solid rgba(255,255,255,0.12);
-    color: var(--white); font-size: 0.95rem; font-family: 'CiscoSans', sans-serif;
-    transition: border-color 0.2s;
-  }
-  .vs-field input:focus { outline: none; border-color: var(--accent); }
-  .vs-submit { width: 100%; margin-top: 6px; }
-  .vs-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-  .vs-status { font-size: 0.88rem; margin-top: 14px; min-height: 1.1em; }
-  .vs-status.error { color: #ff7a7a; }
-  .vs-status.success { color: var(--accent3); }
 </style>
 </head>
 <body>
@@ -482,7 +443,7 @@
   <div class="hero-buttons">
     <a href="#" class="btn-primary">Contact Sales</a>
     <a href="#" class="btn-secondary">Watch Demo</a>
-    <button type="button" class="btn-primary" onclick="openVideoSupport()">Click here for Video Support</button>
+    <button type="button" class="btn-primary" id="support-btn">Click here for Video Support</button>
   </div>
 </div>
 
@@ -802,109 +763,22 @@ function switchTab(tab, btn) {
   document.getElementById('tab-' + tab).classList.add('active');
   btn.classList.add('active');
 }
-
-// --- Video Support Modal ---
-// TODO: set the backend endpoint that receives the POST.
-// const VIDEO_SUPPORT_ENDPOINT = 'http://localhost:3000/api/start-session';
-const VIDEO_SUPPORT_ENDPOINT = 'https://consolidated-ic-tr-be-103887567970.us-central1.run.app/api/start-session';
-
-function openVideoSupport() {
-  console.log('[WxCC]: opening video support modal');
-  const overlay = document.getElementById('vs-overlay');
-  overlay.classList.add('open');
-  document.getElementById('vs-status').textContent = '';
-  setTimeout(() => document.getElementById('vs-name').focus(), 50);
-}
-
-function closeVideoSupport() {
-  console.log('[WxCC]: closing video support modal');
-  document.getElementById('vs-overlay').classList.remove('open');
-}
-
-async function submitVideoSupport(e) {
-  e.preventDefault();
-  const status = document.getElementById('vs-status');
-  const btn = document.getElementById('vs-submit');
-  const params = new URLSearchParams(window.location.search);
-  const payload = {
-    name: document.getElementById('vs-name').value.trim(),
-    email: document.getElementById('vs-email').value.trim(),
-    verticalType: params.get('verticalType') || 'gen',
-    destinationId: params.get('destinationId') || 'vvazquezICVideo',
-    channel: params.get('channel') || 'vvazquezVideo',
-    region: params.get('region') || 'emea',
-  };
-
-  status.className = 'vs-status';
-  status.textContent = '';
-
-  console.log('[WxCC]: submitting video support request:', payload);
-
-  if (!VIDEO_SUPPORT_ENDPOINT) {
-    console.warn('[WxCC]: video support endpoint not configured');
-    status.className = 'vs-status error';
-    status.textContent = 'Support endpoint is not configured yet.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-  try {
-    console.log('[WxCC]: POST to', VIDEO_SUPPORT_ENDPOINT);
-    const res = await fetch(VIDEO_SUPPORT_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) throw new Error('Request failed: ' + res.status);
-    console.log('[WxCC]: video support request sent, status', res.status);
-
-    const data = await res.json();
-    console.log('[WxCC]: video support response:', data);
-
-    if (!data.guestUrl) throw new Error('No guestUrl in response');
-
-    status.className = 'vs-status success';
-    status.textContent = 'Thanks! Opening your video support session…';
-    document.getElementById('vs-form').reset();
-
-    console.log('[WxCC]: opening guest URL:', data.guestUrl);
-    window.open(data.guestUrl, '_blank', 'noopener');
-  } catch (err) {
-    console.error('[WxCC]: video support request failed:', err);
-    status.className = 'vs-status error';
-    status.textContent = 'Something went wrong. Please try again.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Request Video Support';
-  }
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeVideoSupport();
-});
 </script>
 
-<!-- VIDEO SUPPORT MODAL -->
-<div class="vs-overlay" id="vs-overlay" onclick="if(event.target===this)closeVideoSupport()">
-  <div class="vs-modal" role="dialog" aria-modal="true" aria-labelledby="vs-title">
-    <button type="button" class="vs-close" aria-label="Close" onclick="closeVideoSupport()">&times;</button>
-    <h2 id="vs-title">Video Support</h2>
-    <p class="vs-sub">Share your details and we’ll set up a video support session with you.</p>
-    <form id="vs-form" onsubmit="submitVideoSupport(event)">
-      <div class="vs-field">
-        <label for="vs-name">Name</label>
-        <input type="text" id="vs-name" name="name" autocomplete="name" required>
-      </div>
-      <div class="vs-field">
-        <label for="vs-email">Email</label>
-        <input type="email" id="vs-email" name="email" autocomplete="email" required>
-      </div>
-      <button type="submit" class="btn-primary vs-submit" id="vs-submit">Request Video Support</button>
-      <div class="vs-status" id="vs-status" aria-live="polite"></div>
-    </form>
-  </div>
-</div>
+<script type="module">
+  import { initVideoSupport, openVideoSupport } from './video-support.js';
+
+  // URL params let the same page demo different destinations/regions.
+  const p = new URLSearchParams(window.location.search);
+  initVideoSupport({
+    endpoint: 'https://consolidated-ic-tr-be-103887567970.us-central1.run.app/api/start-session',
+    verticalType:  p.get('verticalType')  || 'gen',
+    destinationId: p.get('destinationId') || 'vvazquezICVideo',
+    channel:       p.get('channel')       || 'vvazquezVideo',
+    region:        p.get('region')        || 'emea',
+  });
+  document.getElementById('support-btn').addEventListener('click', openVideoSupport);
+</script>
 
 </body>
 </html>
